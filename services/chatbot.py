@@ -39,14 +39,15 @@ class Gemini:
         # Prompt template cho RAG với labels
         self.rag_prompt = ChatPromptTemplate.from_messages([
             ("system", """Bạn là một trợ lý AI thân thiện, thông minh và hữu ích. 
-        - Ưu tiên sử dụng thông tin trong `Context` để trả lời câu hỏi.
+        - Ưu tiên sử dụng thông tin trong `Context` để trả lời câu hỏi, bao gồm cả nội dung từ các file mà người dùng đính kèm (ví dụ: PDF, Word, Excel).
+        - Nếu trong `Context` có phần liên quan đến file (bảng dữ liệu, văn bản, báo cáo...), hãy tóm tắt các ý chính hoặc trích xuất thông tin quan trọng từ file đó để trả lời câu hỏi của người dùng.
         - Nếu thông tin trong `Context` không đầy đủ hoặc không liên quan, hãy dựa vào kiến thức của bạn để trả lời.
-        - Nếu câu hỏi không rõ ràng hoặc thiếu dữ kiện, hãy yêu cầu người dùng cung cấp thêm thông tin.
         - Luôn trả lời bằng cùng ngôn ngữ với câu hỏi (tiếng Việt hoặc tiếng Anh).
+        - Nếu câu hỏi không rõ ràng hoặc thiếu dữ kiện, hãy yêu cầu người dùng cung cấp thêm thông tin hoặc mô tả cụ thể về file.
         - Nếu `Context` quá dài hoặc chứa nhiều chi tiết, hãy tóm tắt ngắn gọn các điểm chính rồi trả lời rõ ràng.
         - Có thể sử dụng từ đồng nghĩa trong `Context` hoặc kiến thức để làm phong phú câu trả lời.
 
-        Context:
+        Context (có thể bao gồm nội dung file):
         {context}
 
         Lịch sử trò chuyện:
