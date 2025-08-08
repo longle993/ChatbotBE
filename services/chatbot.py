@@ -4,8 +4,11 @@ from langchain.prompts import ChatPromptTemplate
 from langchain.schema import StrOutputParser
 from langchain.memory import ConversationBufferMemory
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-
-
+import io
+import docx
+import base64
+import pandas as pd
+from langchain_core.documents import Document
 
 class Gemini:
     def __init__(self, vector_db):
@@ -88,4 +91,111 @@ class Gemini:
         self.memory.chat_memory.add_ai_message(response)
         
         return response
+    
+    def extract_file_contents(self, files, embedder=None, vector_db=None):
+        file_contents = []
+        for f in files:
+            text = ""
+            file_name = f.get("name", "").lower()
+            encoded_content = f.get("content", "")
+
+            try:
+                file_bytes = base64.b64decode(encoded_content.split(',')[-1])
+            except Exception:
+                file_bytes = b""
+
+            if file_name.endswith(".pdf"):
+                try:
+                    import io
+                    from PyPDF2 import PdfReader
+                    pdf_reader = PdfReader(io.BytesIO(file_bytes))
+                    for page in pdf_reader.pages:
+                        t = page.extract_text() or ""
+                        text += t
+                except Exception:
+                    text += "[Không thể đọc file PDF]"
+            elif file_name.endswith(".docx"):
+                try:
+                    doc = docx.Document(io.BytesIO(file_bytes))
+                    for para in doc.paragraphs:
+                        text += para.text + "\n"
+                except Exception:
+                    text += "[Không thể đọc file DOCX]"
+            elif file_name.endswith(".xlsx") and embedder and vector_db:
+                try:
+                    df = pd.read_excel("data/documents/data.xlsx")
+                    header = df.columns.tolist()
+                    documents = []
+                    for index, row in df.iterrows():
+                        content = embedder.combine_text_columns(row, header)
+                        doc = Document(
+                            page_content=content,
+                            metadata={"index": index}
+                        )
+                        documents.append(doc)
+                    vector_db.add_documents(documents)
+                except Exception:
+                    text += "[Không thể đọc file Excel]"
+            else:
+                try:
+                    text = file_bytes.decode("utf-8")
+                except Exception:
+                    text = "[Không thể đọc file dạng text]"
+
+            if text:
+                file_contents.append(f"{f['name']}:\n{text[:3000]}")
+        return file_contents
+    def embed_and_reload_files(self, files, embedder, vector_db):
+        """
+        Nhúng nội dung các file vào vector store và load lại vector store cho chatbot.
+        """
+
+        documents = []
+        for f in files:
+            file_name = f.get("name", "").lower()
+            encoded_content = f.get("content", "")
+            try:
+                file_bytes = base64.b64decode(encoded_content.split(',')[-1])
+            except Exception:
+                file_bytes = b""
+
+            if file_name.endswith(".pdf"):
+                try:
+                    from PyPDF2 import PdfReader
+                    pdf_reader = PdfReader(io.BytesIO(file_bytes))
+                    for page in pdf_reader.pages:
+                        text = page.extract_text() or ""
+                        doc = Document(page_content=text, metadata={"name": file_name})
+                        documents.append(doc)
+                except Exception:
+                    pass
+            elif file_name.endswith(".docx"):
+                try:
+                    docx_file = docx.Document(io.BytesIO(file_bytes))
+                    text = "\n".join([para.text for para in docx_file.paragraphs])
+                    doc = Document(page_content=text, metadata={"name": file_name})
+                    documents.append(doc)
+                except Exception:
+                    pass
+            elif file_name.endswith(".xlsx"):
+                try:
+                    df = pd.read_excel(io.BytesIO(file_bytes))
+                    header = df.columns.tolist()
+                    for index, row in df.iterrows():
+                        content = embedder.combine_text_columns(row, header)
+                        doc = Document(page_content=content, metadata={"name": file_name, "index": index})
+                        documents.append(doc)
+                except Exception:
+                    pass
+            else:
+                try:
+                    text = file_bytes.decode("utf-8")
+                    doc = Document(page_content=text, metadata={"name": file_name})
+                    documents.append(doc)
+                except Exception:
+                    pass
+
+        if documents:
+            vector_db.add_documents(documents)
+            self.vector_store = vector_db.get_vectorstore()
 

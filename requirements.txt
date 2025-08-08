@@ -18,3 +18,4 @@ faiss-cpu
 pypdf
 docx2txt
 base64
+python-docx

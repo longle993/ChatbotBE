@@ -71,74 +71,9 @@ def chat_message():
             "message": "Missing message or files"
         }), 400
 
-    # Đọc nội dung từ files và nối vào context
-    file_contents = []
-    for f in files:
-        text = ""
-        file_name = f.get("name", "").lower()
-        encoded_content = f.get("content", "")
+    # Sử dụng hàm extract_file_contents của Gemini
+    file_contents = gemini_chatbot.extract_file_contents(files, embedder, vector_db)
 
-        try:
-            file_bytes = base64.b64decode(encoded_content.split(',')[-1])
-        except Exception:
-            file_bytes = b""
-
-        if file_name.endswith(".pdf"):
-            # Đọc PDF (cần cài PyPDF2 hoặc pdfplumber)
-            try:
-                import io
-                from PyPDF2 import PdfReader
-                pdf_reader = PdfReader(io.BytesIO(file_bytes))
-                for page in pdf_reader.pages:
-                    t = page.extract_text() or ""
-                    text += t
-            except Exception:
-                text += "[Không thể đọc file PDF]"
-        elif file_name.endswith(".docx"):
-            # Đọc DOCX
-            try:
-                import io
-                import docx
-                doc = docx.Document(io.BytesIO(file_bytes))
-                for para in doc.paragraphs:
-                    text += para.text + "\n"
-            except Exception:
-                text += "[Không thể đọc file DOCX]"
-        elif file_name.endswith(".xlsx"):
-            # Đọc Excel: kết hợp header + row
-            try:    
-                # Đọc Excel
-                df = pd.read_excel("data/documents/data.xlsx")
-                header = df.columns.tolist()
-
-                # Chuyển Excel → Documents
-                documents = []
-                for index, row in df.iterrows():
-                    content = embedder.combine_text_columns(row, header)
-                    doc = Document(
-                        page_content=content,
-                        metadata={"index": index}
-                    )
-                    documents.append(doc)
-                    print(content)
-
-                # Nhúng & lưu vào FAISS
-                vector_db.add_documents(documents)
-                print("✅ Đã nhúng xong và lưu FAISS thành công.")
-            except Exception:
-                text += "[Không thể đọc file Excel]"
-        else:
-            # Nếu là text hoặc không xác định thì lấy trực tiếp
-            try:
-                text = file_bytes.decode("utf-8")
-            except Exception:
-                text = "[Không thể đọc file dạng text]"
-
-        # Giới hạn 3000 ký tự cho mỗi file
-        if text:
-            file_contents.append(f"{f['name']}:\n{text[:3000]}")
-
-    # Ghép nội dung file vào truy vấn
     if file_contents:
         user_input = (user_input or "") + "\n\nNội dung file:\n" + "\n\n".join(file_contents)
 
@@ -156,3 +91,39 @@ def chat_message():
             "code": 500,
             "message": f"Error: {str(e)}"
         }), 500
+
+@chatbot_api.route('/embedfile', methods=['POST'])
+def embed_file():
+    """
+    Nhận file từ client, lưu vào data/documents và nhúng vào vector store.
+    """
+    if 'file' not in request.files:
+        return jsonify({
+            "code": 400,
+            "message": "Missing file"
+        }), 400
+
+    file = request.files['file']
+    filename = file.filename
+    save_path = os.path.join("data", "documents", filename)
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    file.save(save_path)
+
+    # Đọc lại file vừa lưu và encode sang base64 để truyền cho hàm nhúng
+    with open(save_path, "rb") as f:
+        file_bytes = f.read()
+        encoded_content = "data:application/octet-stream;base64," + base64.b64encode(file_bytes).decode()
+
+    file_info = {
+        "name": filename,
+        "content": encoded_content
+    }
+
+    # Nhúng file và reload vector store
+    gemini_chatbot.embed_and_reload_files([file_info], embedder, vector_db)
+
+    return jsonify({
+        "code": 200,
+        "message": "File embedded and vector store updated",
+        "data": {"filename": filename}
+    }), 200
