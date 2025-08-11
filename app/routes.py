@@ -76,7 +76,7 @@ def chat_message():
 
     if file_contents:
         user_input = (user_input or "") + "\n\nNội dung file:\n" + "\n\n".join(file_contents)
-
+    print(file_contents)
     try:
         response = gemini_chatbot.chat(user_input)
         return jsonify({
