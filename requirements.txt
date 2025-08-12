@@ -19,3 +19,6 @@ pypdf
 docx2txt
 base64
 python-docx
+motor
+fastapi
+email_validator
