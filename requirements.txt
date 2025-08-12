@@ -22,3 +22,4 @@ python-docx
 motor
 fastapi
 email_validator
+python-multipart

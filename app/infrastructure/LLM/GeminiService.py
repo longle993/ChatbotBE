@@ -2,12 +2,13 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema import StrOutputParser
 from langchain.memory import ConversationBufferWindowMemory
-from core.entity.Chat import ChatMessage
+from core.entity.Chat import Message
 from core.interface.ILLMRepository import ILLMRepository
+import os
 
 class GeminiLLMService(ILLMRepository):
     def __init__(self, model_name="gemini-2.0-flash", temperature=0.7, max_tokens=2000):
-        self.llm = ChatGoogleGenerativeAI(model=model_name, temperature=temperature, max_tokens=max_tokens)
+        self.llm = ChatGoogleGenerativeAI(model=model_name, temperature=temperature, api_key="AIzaSyDTK0xK5tf-OmH0wXhQ-GyD0URO7SFVDng", max_tokens=max_tokens)
         self.memory = ConversationBufferWindowMemory(memory_key="chat_history", return_messages=True, k=10)
 
         # Prompt template được cải thiện cho RAG với context liên tục
@@ -34,7 +35,7 @@ class GeminiLLMService(ILLMRepository):
         ])
         self.chain = self.rag_prompt | self.llm | StrOutputParser()
 
-    def chat(self, context: str, history: list[ChatMessage], question: str) -> str:
+    def chat(self, context: str, history: list[Message], question: str) -> str:
         response = self.chain.invoke({
             "context": context,
             "chat_history": [m.content for m in history],

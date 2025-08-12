@@ -1,6 +1,6 @@
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from VectorDBService import VectorDBService
+from infrastructure.VectorDB.VectorDBService import VectorDBService
 
 class FAISSVectorDB(VectorDBService):
     def __init__(self):
