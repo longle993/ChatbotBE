@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends
-from presentation.schema.User import CreateUserRequest, CreateUserResponse, LoginUserRequest, LoginUserResponse
+from presentation.schema.User import CreateUserRequest, CreateUserResponse
 from core.use_case.CreateUser import CreateUser
-from core.use_case.LoginUser import LoginUser
 from infrastructure.repository.UserRepositoryMongo import UserRepositoryMongo
 from infrastructure.db.Mongo import get_user_collection
 from core.entity.Response import ApiResponse
