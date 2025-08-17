@@ -1,21 +1,18 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from core.entity.Response import ApiResponse
 from typing import Any, Optional
 
-#Create
-class CreateUserRequest(BaseModel):
-    id: str
+#Login
+class LoginUserRequest(BaseModel):
     username: str
-    email: EmailStr
     password: str
-    full_name: str
 
-class CreateUserResponse(BaseModel):
+class LoginUserResponse(BaseModel):
     code: int
     isSuccess: bool
     message: str
     data: Optional[Any] = None
-
+    
     @classmethod
     def from_entity(cls, response: ApiResponse):
         return cls(
@@ -23,9 +20,6 @@ class CreateUserResponse(BaseModel):
             isSuccess=response.isSuccess,
             message=response.message,
             data={
-                "user": response.data.username,
-                "email": response.data.email
+                "exp": response.data.exp
             }
         )
-
-

@@ -3,6 +3,7 @@ from core.interface.IUserRepository import IUserRepository
 from bson import ObjectId
 from pymongo.collection import Collection
 from utils.hashSHA256 import hash_password 
+from utils.hashArgon2 import HashArgon2, VerifyArgon2
 
 class UserRepositoryMongo(IUserRepository):
     def __init__(self, collection: Collection):
@@ -12,7 +13,7 @@ class UserRepositoryMongo(IUserRepository):
         doc = {
             "username": user.username,
             "email": user.email,
-            "password": user.password,
+            "password": HashArgon2(user.password),
             "full_name": user.full_name,
             "created_at": user.created_at,
             "updated_at": user.updated_at
@@ -33,9 +34,14 @@ class UserRepositoryMongo(IUserRepository):
         )
     
     async def login(self, username: str, password: str) -> User | None:
-        doc = await self.collection.find_one({"username": username, "password": hash_password(password)})
+        doc = await self.collection.find_one({"username": username})
+        print(doc)
         if not doc:
             return None
+
+        if not VerifyArgon2(doc["password"], password):
+            return None
+
         return User(
             id=str(doc["_id"]),
             username=doc["username"],

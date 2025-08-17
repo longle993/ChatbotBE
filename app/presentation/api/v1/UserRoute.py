@@ -16,7 +16,9 @@ async def create_user(
     try:
         repo = UserRepositoryMongo(collection)
         use_case = CreateUser(repo)
+        
         user = await use_case.execute(
+            req.id,
             req.username, 
             req.password, 
             req.full_name, 
@@ -38,30 +40,4 @@ async def create_user(
             ApiResponse.error(f"Internal server error: {str(e)}")
         )
 
-@router.post("/login", response_model=LoginUserResponse)
-async def login_user(
-    req: LoginUserRequest,
-    collection=Depends(get_user_collection)
-):
-    try:
-        repo = UserRepositoryMongo(collection)
-        use_case = LoginUser(repo)
-        user = await use_case.execute(
-            req.username,
-            req.password
-        )
 
-        if not user:
-            return LoginUserResponse.from_entity(
-                ApiResponse.error("Login failed")
-            )
-
-        return LoginUserResponse.from_entity(
-            ApiResponse.success(user)
-        )
-
-    except Exception as e:
-        print(f"Error logging in user: {e}")
-        return LoginUserResponse.from_entity(
-            ApiResponse.error(f"Internal server error: {str(e)}")
-        )
