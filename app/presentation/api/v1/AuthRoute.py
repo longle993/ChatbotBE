@@ -18,7 +18,7 @@ from core.entity.Response import ApiResponse
 from infrastructure.db.Mongo import get_user_collection
 from infrastructure.repository.UserRepositoryMongo import UserRepositoryMongo
 from core.use_case.LoginUser import LoginUser
-
+from presentation.schema.Auth import AuthResponse
 
 
 router = APIRouter()
@@ -27,7 +27,7 @@ router = APIRouter()
 async def get_csrf_token(response: Response):
     csrf = token_urlsafe(32)
     set_csrf_cookie(response, csrf, same_site="None", secure=True)
-    return {"success": True}
+    return AuthResponse.success("CSRF token set")
 
 @router.post("/refresh")
 async def refresh_token(request: Request, response: Response):
@@ -44,7 +44,7 @@ async def refresh_token(request: Request, response: Response):
     new_access = create_jwt(sub, access_exp, "access")
     set_jwt_cookies(response, new_access, None, same_site="None", secure=True)
 
-    return {"success": True, "exp": int((timedelta(minutes=ACCESS_EXPIRE_MIN) + timedelta()).total_seconds())}
+    return AuthResponse.success("Token refreshed", {"exp": int((timedelta(minutes=ACCESS_EXPIRE_MIN) + timedelta()).total_seconds())})
 
 @router.post("/login", response_model=LoginUserResponse)
 async def login_user(
@@ -95,4 +95,4 @@ async def login_user(
 @router.post("/logout")
 async def logout(response: Response):
     clear_jwt_cookies(response, same_site="None", secure=True)
-    return {"success": True}
+    return AuthResponse.success("Logged out successfully")

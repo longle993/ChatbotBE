@@ -4,6 +4,8 @@ from typing import Optional
 import jwt
 from fastapi import Response, Request, HTTPException, status
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"

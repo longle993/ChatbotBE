@@ -24,3 +24,4 @@ fastapi
 email_validator
 python-multipart
 argon2-cffi
+PyJWT
