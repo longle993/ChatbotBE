@@ -20,6 +20,7 @@ class LoginUserResponse(BaseModel):
             isSuccess=response.isSuccess,
             message=response.message,
             data={
-                "exp": response.data.exp
+                "id": response.data.id,
+                "username": response.data.username
             }
         )

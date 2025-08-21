@@ -2,7 +2,6 @@ from core.entity.User import User
 from core.interface.IUserRepository import IUserRepository
 from bson import ObjectId
 from pymongo.collection import Collection
-from utils.hashSHA256 import hash_password 
 from utils.hashArgon2 import HashArgon2, VerifyArgon2
 
 class UserRepositoryMongo(IUserRepository):
@@ -35,13 +34,13 @@ class UserRepositoryMongo(IUserRepository):
     
     async def login(self, username: str, password: str) -> User | None:
         doc = await self.collection.find_one({"username": username})
-        print(doc)
         if not doc:
             return None
 
         if not VerifyArgon2(doc["password"], password):
+            print("Password verification failed")
             return None
-
+       
         return User(
             id=str(doc["_id"]),
             username=doc["username"],

@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Request, Response, HTTPException, status
 from secrets import token_urlsafe
 from datetime import timedelta
 
+
 from security import (
     require_csrf,
     set_csrf_cookie,
@@ -27,7 +28,7 @@ router = APIRouter()
 async def get_csrf_token(response: Response):
     csrf = token_urlsafe(32)
     set_csrf_cookie(response, csrf, same_site="None", secure=True)
-    return AuthResponse.success("CSRF token set")
+    return ApiResponse.success({"csrf": csrf})
 
 @router.post("/refresh")
 async def refresh_token(request: Request, response: Response):
@@ -44,19 +45,24 @@ async def refresh_token(request: Request, response: Response):
     new_access = create_jwt(sub, access_exp, "access")
     set_jwt_cookies(response, new_access, None, same_site="None", secure=True)
 
-    return AuthResponse.success("Token refreshed", {"exp": int((timedelta(minutes=ACCESS_EXPIRE_MIN) + timedelta()).total_seconds())})
+    return AuthResponse.from_entity(
+        ApiResponse.success({"exp": int((timedelta(minutes=ACCESS_EXPIRE_MIN) + timedelta()).total_seconds())})
+    )
 
 @router.post("/login", response_model=LoginUserResponse)
 async def login_user(
     req: LoginUserRequest,
-    response: Response,  # 👈 thêm tham số Response để set cookie
+    request: Request,
+    response: Response,
     collection=Depends(get_user_collection)
 ):
     try:
+        print(request)
+        require_csrf(request)
         repo = UserRepositoryMongo(collection)
         use_case = LoginUser(repo)
         user = await use_case.execute(req.username, req.password)
-
+        print(user)
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -73,9 +79,6 @@ async def login_user(
 
         # Set cookie HttpOnly
         set_jwt_cookies(response, access, refresh, same_site="None", secure=True)
-
-        # Set thêm CSRF token (FE sẽ gửi lại token này ở header khi gọi API)
-        set_csrf_cookie(response, token_urlsafe(32), same_site="None", secure=True)
 
         # Trả thông tin user
         return LoginUserResponse.from_entity(

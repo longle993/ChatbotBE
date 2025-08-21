@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from core.entity.Response import ApiResponse
 from typing import Any, Optional
 
 class AuthResponse(BaseModel):
@@ -8,19 +9,16 @@ class AuthResponse(BaseModel):
     data: Optional[Any] = None
  
     @classmethod
-    def success(cls, message: str, data: Any = None):
+    def from_entity(cls, response: ApiResponse):
         return cls(
-            code=200,
-            isSuccess=True,
-            message=message,
-            data=data
+            code=response.code,
+            isSuccess=response.isSuccess,
+            message=response.message,
+            data={
+                "data": response.data
+            }
         )
 
-    @classmethod
-    def error(cls, code: int, message: str):
-        return cls(
-            code=code,
-            isSuccess=False,
-            message=message,
-            data=None
-        )
+
+
+

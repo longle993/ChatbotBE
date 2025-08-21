@@ -92,6 +92,8 @@ def set_csrf_cookie(resp: Response, token: str, *, same_site="None", secure=True
 def require_csrf(request: Request):
     if request.method in ("POST", "PUT", "PATCH", "DELETE"):
         cookie_token = request.cookies.get(CSRF_COOKIE_NAME)
+        print(cookie_token)
         header_token = request.headers.get(CSRF_HEADER_NAME)
+        print(header_token)
         if not cookie_token or not header_token or cookie_token != header_token:
             raise HTTPException(status_code=403, detail="CSRF token invalid")
