@@ -2,7 +2,7 @@ import base64
 from fastapi import APIRouter, UploadFile, File
 from core.use_case.EmbedFile import EmbedFilesUseCase
 from infrastructure.embedding.EmbeddingService import GoogleEmbeddingService
-from infrastructure.VectorDB.FaissService import FAISSVectorDB
+from infrastructure.VectorDB.FaissVectorDB import FAISSVectorDB
 
 router = APIRouter()
 

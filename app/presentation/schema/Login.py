@@ -21,6 +21,7 @@ class LoginUserResponse(BaseModel):
             message=response.message,
             data={
                 "id": response.data.id,
-                "username": response.data.username
+                "username": response.data.username,
+                "role": response.data.role
             }
         )

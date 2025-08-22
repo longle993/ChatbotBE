@@ -6,16 +6,14 @@ class CreateUser:
     def __init__(self, user_repo: IUserRepository):
         self.user_repo = user_repo
 
-    async def execute(self, id: str, username: str, password: str, full_name: str, email: str) -> User:
-        if id:
-            user = User(
-                id=id,
-                username=username,
-                password=password,
-                full_name=full_name,
-                email=email,
-                created_at=datetime.now(),
-                updated_at=datetime.now()
-            )
-            return await self.user_repo.create(user)
-        return None
+    async def execute(self, username: str, password: str, full_name: str, email: str) -> User:
+        user = User(
+        username=username,
+        password=password,
+        full_name=full_name,
+        email=email,
+        created_at=datetime.now(),
+            updated_at=datetime.now()
+        )
+        return await self.user_repo.create(user)
+

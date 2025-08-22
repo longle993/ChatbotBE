@@ -5,10 +5,13 @@ from langchain.memory import ConversationBufferWindowMemory
 from core.entity.Chat import Message
 from core.interface.ILLMRepository import ILLMRepository
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
 
 class GeminiLLMService(ILLMRepository):
     def __init__(self, model_name="gemini-2.0-flash", temperature=0.7, max_tokens=2000):
-        self.llm = ChatGoogleGenerativeAI(model=model_name, temperature=temperature, api_key="AIzaSyDTK0xK5tf-OmH0wXhQ-GyD0URO7SFVDng", max_tokens=max_tokens)
+        self.llm = ChatGoogleGenerativeAI(model=model_name, temperature=temperature, api_key=os.getenv("GOOGLE_API_KEY"), max_tokens=max_tokens)
         self.memory = ConversationBufferWindowMemory(memory_key="chat_history", return_messages=True, k=10)
 
         # Prompt template được cải thiện cho RAG với context liên tục

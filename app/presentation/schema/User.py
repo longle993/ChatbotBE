@@ -4,7 +4,6 @@ from typing import Any, Optional
 
 #Create
 class CreateUserRequest(BaseModel):
-    id: str
     username: str
     email: EmailStr
     password: str
@@ -28,4 +27,23 @@ class CreateUserResponse(BaseModel):
             }
         )
 
+#Get Users
+class GetUserRequest(BaseModel):
+    user_id: str
 
+class GetUserResponse(BaseModel):
+    code: int
+    isSuccess: bool
+    message: str
+    data: Optional[Any] = None
+
+    @classmethod
+    def from_entity(cls, response: ApiResponse):
+        return cls(
+            code=response.code,
+            isSuccess=response.isSuccess,
+            message=response.message,
+            data={
+                "users": response.data
+            }
+        )

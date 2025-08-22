@@ -3,6 +3,7 @@ from core.interface.IUserRepository import IUserRepository
 from bson import ObjectId
 from pymongo.collection import Collection
 from utils.hashArgon2 import HashArgon2, VerifyArgon2
+from fastapi import HTTPException, status
 
 class UserRepositoryMongo(IUserRepository):
     def __init__(self, collection: Collection):
@@ -44,5 +45,35 @@ class UserRepositoryMongo(IUserRepository):
         return User(
             id=str(doc["_id"]),
             username=doc["username"],
-            email=doc["email"]
+            email=doc["email"],
+            role=doc["role"]
         )
+
+    async def get_users(self, role: str, id: str, username: str) -> list[User]:
+        doc = await self.collection.find_one({"username": username, "_id": ObjectId(id)})
+        userRole = ''
+        if doc:
+            userRole = str(doc.get("role", ""))
+        
+        
+        if userRole != role:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have permission to access this resource"
+            )
+
+        query = {}
+        docs = await self.collection.find(query).to_list(length=None)
+        return [
+            User(
+                id=str(doc["_id"]),
+                username=doc["username"],
+                full_name=doc["full_name"],
+                email=doc["email"],
+                created_at=doc["created_at"],
+                updated_at=doc["updated_at"],
+                role=doc["role"],
+            )
+            for doc in docs
+        ]
+

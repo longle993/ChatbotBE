@@ -57,26 +57,26 @@ async def login_user(
     collection=Depends(get_user_collection)
 ):
     try:
-        print(request)
         require_csrf(request)
         repo = UserRepositoryMongo(collection)
         use_case = LoginUser(repo)
         user = await use_case.execute(req.username, req.password)
-        print(user)
+
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid username or password"
             )
-
+        
         # Thời gian sống của token
         access_exp = timedelta(minutes=ACCESS_EXPIRE_MIN)
         refresh_exp = timedelta(days=REFRESH_EXPIRE_DAYS)
 
         # Tạo JWT
+        
         access = create_jwt(str(user.id), access_exp, "access")
         refresh = create_jwt(str(user.id), refresh_exp, "refresh")
-
+        
         # Set cookie HttpOnly
         set_jwt_cookies(response, access, refresh, same_site="None", secure=True)
 

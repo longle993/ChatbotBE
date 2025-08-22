@@ -13,3 +13,7 @@ class IUserRepository(ABC):
     @abstractmethod
     async def login(self, username: str, password:str) -> User | None:
         pass
+
+    @abstractmethod
+    async def get_users(self, role:str = None) -> list[User]:
+        pass

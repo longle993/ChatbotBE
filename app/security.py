@@ -11,8 +11,8 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_EXPIRE_MIN = 15
 REFRESH_EXPIRE_DAYS = 7
-
-ACCESS_COOKIE_NAME = "access_token"
+ 
+ACCESS_COOKIE_NAME = "access_token" 
 REFRESH_COOKIE_NAME = "refresh_token"
 CSRF_COOKIE_NAME = "csrf_token"
 CSRF_HEADER_NAME = "X-CSRF-Token"
@@ -20,6 +20,7 @@ CSRF_HEADER_NAME = "X-CSRF-Token"
 
 def create_jwt(sub: str, expires_delta: timedelta, token_type="access") -> str:
     now = datetime.now(timezone.utc)
+    
     payload = {
         "sub": sub,
         "iat": int(now.timestamp()),
@@ -29,7 +30,11 @@ def create_jwt(sub: str, expires_delta: timedelta, token_type="access") -> str:
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
-def decode_jwt(token: str) -> dict:
+def decode_jwt(request: Request) -> dict:
+    token = request.cookies.get(ACCESS_COOKIE_NAME)
+    if not token:
+        raise HTTPException(status_code=401, detail="Missing access token")
+
     try:
         return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except jwt.ExpiredSignatureError:
@@ -92,8 +97,7 @@ def set_csrf_cookie(resp: Response, token: str, *, same_site="None", secure=True
 def require_csrf(request: Request):
     if request.method in ("POST", "PUT", "PATCH", "DELETE"):
         cookie_token = request.cookies.get(CSRF_COOKIE_NAME)
-        print(cookie_token)
         header_token = request.headers.get(CSRF_HEADER_NAME)
-        print(header_token)
+
         if not cookie_token or not header_token or cookie_token != header_token:
             raise HTTPException(status_code=403, detail="CSRF token invalid")
