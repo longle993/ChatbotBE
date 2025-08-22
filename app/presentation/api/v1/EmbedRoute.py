@@ -1,13 +1,22 @@
 import base64
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter, UploadFile, File, Request
 from core.use_case.EmbedFile import EmbedFilesUseCase
 from infrastructure.embedding.EmbeddingService import GoogleEmbeddingService
 from infrastructure.VectorDB.FaissVectorDB import FAISSVectorDB
-
+from security import (
+    require_csrf,
+    decode_jwt,
+)
 router = APIRouter()
 
-@router.post("/embed")
-async def embed_files(files: list[UploadFile] = File(...)):
+@router.post("/")
+async def embed_files(
+    request: Request,
+    files: list[UploadFile] = File(...)
+):
+    require_csrf(request)
+    user_id = decode_jwt(request)
+    print('loglog')
     embedder = GoogleEmbeddingService()
     vector_db = FAISSVectorDB()
 
