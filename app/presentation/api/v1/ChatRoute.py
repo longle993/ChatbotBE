@@ -22,8 +22,8 @@ async def chat_endpoint(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or missing token"
         )
-
-    llm_service = GeminiLLMService()
+ 
+    llm_service = ClaudeLLMService()
     vector_service = FAISSVectorDB()
     use_case = ChatWithGemini(llm_service, vector_service)
 

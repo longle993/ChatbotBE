@@ -9,3 +9,11 @@ class IVectorDBRepository(ABC):
     @abstractmethod
     def add_documents(self, documents: list):
         pass
+    
+    @abstractmethod
+    def save_vectorstore(self):
+        pass
+    
+    @abstractmethod
+    def get_vectorstore(self):
+        pass

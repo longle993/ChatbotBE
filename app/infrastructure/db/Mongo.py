@@ -2,7 +2,8 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.collection import Collection
 from config import Config
 import os
-
+from dotenv import load_dotenv
+load_dotenv()
 MONGO_URI = os.getenv(
     "MONGO_URI",
     "mongodb+srv://fastchatbot:i87M6dFZdLrRaDUn@cluster0.eetjn7s.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"

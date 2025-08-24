@@ -26,3 +26,4 @@ python-multipart
 argon2-cffi
 PyJWT
 langchain_anthropic
+chardet
