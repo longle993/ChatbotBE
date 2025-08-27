@@ -3,7 +3,7 @@ from fastapi import APIRouter, UploadFile, File, Request
 import io
 #from core.use_case.EmbedFile import EmbedFilesUseCase
 #from infrastructure.repository.EmbeddingRepository import GoogleEmbeddingService
-#from infrastructure.VectorDB.FaissVectorDB import FAISSVectorDB
+from infrastructure.VectorDB.FaissVectorDB import FAISSVectorDB
 #from presentation.schema.Embedder import EmbedderResponse
 from core.entity.Response import ApiResponse
 from security import (
@@ -24,10 +24,12 @@ async def embed_files(
 ):
     require_csrf(request)
     user_id = decode_jwt(request)
-     
+    
     file_repo = FileRepository()
+    vector_db = FAISSVectorDB()
     documents = file_repo.extract_file(files)
-    print(documents)
+    print(vector_db)
+    vector_db.add_documents(documents)
     return ApiResponse.success(len(documents))
 
 """    return EmbedderResponse.from_entity(

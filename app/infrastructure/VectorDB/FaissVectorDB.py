@@ -10,7 +10,7 @@ load_dotenv()
 class FAISSVectorDB(VectorDBService):
     def __init__(self):
         self.persist_path = os.getenv("PERSIST_PATH")
-        self.model = os.getenv("EMBEDDING_MODEL", "")
+        self.model = os.getenv("EMBEDDING_MODEL", "models/gemini-embedding-001")
         self.embeddings = GoogleGenerativeAIEmbeddings(model=self.model)
         vector_store = None
 
