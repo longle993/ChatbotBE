@@ -1,20 +1,19 @@
 from langchain_core.documents import Document
-
-from core.interface import IVectorDBRepository
-from core.interface.IEmbeddingRepository import IEmbeddingRepository
+from fastapi import UploadFile
+from core.interface.IQwen3Faiss import IQwen3Faiss
+from core.interface.IFileRepository import IFileRepository
 
 class EmbedFilesUseCase:
-    def __init__(self, embedder: IEmbeddingRepository, vector_db: IVectorDBRepository):
+    def __init__(self, file_repo: IFileRepository, embedder: IQwen3Faiss):
         """
         embedder: EmbeddingRepository
         vector_db: VectorDBRepository
         """
+        self.file_repo = file_repo
         self.embedder = embedder
-        self.vector_db = vector_db
 
-    def execute(self, files: list[dict]):
-              
-        docs = self.embedder.embed_documents([Document(page_content=f.get("content", ""), metadata={"name": f.get("name", "")}) for f in files])
-        self.vector_db.add_documents(docs)
-        self.vector_db.save_vectorstore()
-        return len(docs)
+    def execute(self, files: list[UploadFile]) -> int:
+        documents = self.file_repo.extract_file(files)
+        self.embedder.add_documents_optimized(documents, chunk_size=512)
+
+        return len(documents)

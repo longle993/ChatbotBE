@@ -2,12 +2,14 @@ from fastapi import APIRouter, Depends, Request, HTTPException, status
 from core.use_case.ChatWithGemini import ChatWithGemini
 from infrastructure.LLM.GeminiService import GeminiLLMService
 from infrastructure.LLM.ClaudeService import ClaudeLLMService
-from infrastructure.VectorDB.FaissVectorDB import FAISSVectorDB
+from infrastructure.VectorDB.GeminiFaiss import GeminiFaiss
+from infrastructure.VectorDB.Qwen3Faiss import Qwen3Faiss
 from presentation.schema.Chat import CreateChatRequest, CreateChatResponse
 from security import decode_jwt, require_csrf
 
 router = APIRouter()
- 
+llm_service = ClaudeLLMService()
+vector_service = Qwen3Faiss()
 @router.post("/")
 async def chat_endpoint(
     req: CreateChatRequest,
@@ -23,8 +25,6 @@ async def chat_endpoint(
             detail="Invalid or missing token"
         )
  
-    llm_service = ClaudeLLMService()
-    vector_service = FAISSVectorDB()
     use_case = ChatWithGemini(llm_service, vector_service)
 
     history = []

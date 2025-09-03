@@ -14,9 +14,7 @@ class EmbedderResponse(BaseModel):
             code=response.code,
             isSuccess=response.isSuccess,
             message=response.message,
-            data={
-                "files": response.data
-            }
+            data=None
         )
 
 
