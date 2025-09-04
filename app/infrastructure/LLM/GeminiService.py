@@ -13,7 +13,7 @@ class GeminiLLMService(ILLMRepository):
     def __init__(self, model_name="gemini-2.0-flash", temperature=0.7, max_tokens=2000):
         self.llm = ChatGoogleGenerativeAI(model=model_name, temperature=temperature, api_key=os.getenv("GOOGLE_API_KEY"), max_tokens=max_tokens)
         self.memory = ConversationBufferWindowMemory(memory_key="chat_history", return_messages=True, k=10)
-
+        
         # Prompt template được cải thiện cho RAG với context liên tục
         self.rag_prompt = ChatPromptTemplate.from_messages([
             ("system", """Bạn là một trợ lý AI thân thiện, thông minh và hữu ích. 
@@ -28,6 +28,7 @@ class GeminiLLMService(ILLMRepository):
         4. **Nếu có từ như "đó", "này", "tiếp tục", "thêm nữa"**, hãy liên kết với nội dung trước đó
         5. Luôn trả lời bằng cùng ngôn ngữ với câu hỏi
         6. Nếu thiếu thông tin, yêu cầu làm rõ một cách thân thiện
+        7. Kết hợp với kiến thức của bạn để cung cấp câu trả lời chính xác và đầy đủ nhất
 
         Context hiện tại:
         {context}

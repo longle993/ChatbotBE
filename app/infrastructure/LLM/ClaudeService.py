@@ -34,6 +34,7 @@ class ClaudeLLMService(ILLMRepository):
         4. **Nếu có từ như "đó", "này", "tiếp tục", "thêm nữa"**, hãy liên kết với nội dung trước đó
         5. Luôn trả lời bằng cùng ngôn ngữ với câu hỏi
         6. Nếu thiếu thông tin, yêu cầu làm rõ một cách thân thiện
+        7. Kết hợp với kiến thức của bạn để cung cấp câu trả lời chính xác và đầy đủ nhất
 
         Context hiện tại:
         {context}
@@ -45,6 +46,7 @@ class ClaudeLLMService(ILLMRepository):
         self.chain = self.rag_prompt | self.llm | StrOutputParser()
 
     def chat(self, context: str, history: list[Message], question: str) -> str:
+        print(history)
         response = self.chain.invoke({
             "context": context,
             "chat_history": [m.content for m in history],

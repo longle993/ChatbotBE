@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Request, Response, HTTPException, status
 from secrets import token_urlsafe
 from datetime import timedelta
-
+from datetime import datetime, timezone
 
 from security import (
     require_csrf,
@@ -30,23 +30,34 @@ async def get_csrf_token(response: Response):
     set_csrf_cookie(response, csrf, same_site="None", secure=True)
     return ApiResponse.success({"csrf": csrf})
 
+# Endpoint refresh token cải thiện
 @router.post("/refresh")
 async def refresh_token(request: Request, response: Response):
     refresh_token = request.cookies.get("refresh_token")
     if not refresh_token:
         raise HTTPException(status_code=401, detail="Missing refresh token")
-
-    payload = decode_jwt(refresh_token)
-    if payload.get("type") != "refresh":
-        raise HTTPException(status_code=401, detail="Invalid token type")
-
+    
+    # Cách 1: Sử dụng hàm decode_jwt cải thiện
+    payload = decode_jwt(refresh_token, token_type="refresh")
+    
+    # Hoặc Cách 2: Sử dụng helper function
+    # payload = decode_refresh_token(request)
+    
     sub = payload["sub"]
     access_exp = timedelta(minutes=ACCESS_EXPIRE_MIN)
     new_access = create_jwt(sub, access_exp, "access")
+    
     set_jwt_cookies(response, new_access, None, same_site="None", secure=True)
-
+    
+    # Tính toán thời gian expire chính xác
+    now = datetime.now(timezone.utc)
+    exp_timestamp = int((now + access_exp).timestamp())
+    
     return AuthResponse.from_entity(
-        ApiResponse.success({"exp": int((timedelta(minutes=ACCESS_EXPIRE_MIN) + timedelta()).total_seconds())})
+        ApiResponse.success({
+            "exp": exp_timestamp,
+            "message": "Access token refreshed successfully"
+        })
     )
 
 @router.post("/login", response_model=LoginUserResponse)

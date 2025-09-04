@@ -6,7 +6,9 @@ from core.interface.IQwen3Faiss import IQwen3Faiss
 from typing import List
 from dotenv import load_dotenv
 import time
+import torch
 
+print(torch.cuda.is_available())
 load_dotenv()
 
 class Qwen3Faiss(IQwen3Faiss):
@@ -111,7 +113,7 @@ class Qwen3Faiss(IQwen3Faiss):
             custom_embeddings = HuggingFaceEmbeddings(
                 model_name="Qwen/Qwen3-Embedding-0.6B",
                 model_kwargs={
-                    'device': 'cpu',
+                    'device': 'cuda',
                     'trust_remote_code': True,
                 },
                 encode_kwargs={

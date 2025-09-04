@@ -1,8 +1,9 @@
-from dataclasses import dataclass
 from datetime import datetime
+from typing import Optional, List
+from pydantic import BaseModel, Field
 
-@dataclass
-class Message:
-    role: str
+class Message(BaseModel):
+    id: Optional[str] = None
+    role: str  # "user" hoặc "assistant"
     content: str
-    timestamp: datetime
+    timestamp: datetime = Field(default_factory=datetime.now)
