@@ -36,12 +36,8 @@ async def refresh_token(request: Request, response: Response):
     refresh_token = request.cookies.get("refresh_token")
     if not refresh_token:
         raise HTTPException(status_code=401, detail="Missing refresh token")
-    
-    # Cách 1: Sử dụng hàm decode_jwt cải thiện
+
     payload = decode_jwt(refresh_token, token_type="refresh")
-    
-    # Hoặc Cách 2: Sử dụng helper function
-    # payload = decode_refresh_token(request)
     
     sub = payload["sub"]
     access_exp = timedelta(minutes=ACCESS_EXPIRE_MIN)
@@ -80,6 +76,7 @@ async def login_user(
             )
         
         # Thời gian sống của token
+        print(ACCESS_EXPIRE_MIN)
         access_exp = timedelta(minutes=ACCESS_EXPIRE_MIN)
         refresh_exp = timedelta(days=REFRESH_EXPIRE_DAYS)
 

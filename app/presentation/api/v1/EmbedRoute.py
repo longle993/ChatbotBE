@@ -12,7 +12,7 @@ from security import (
     decode_jwt,
 )
 from infrastructure.repository.FileRepository import FileRepository
-
+from presentation.api.v1.ChatRoute import vector_service as embedder
 
 
 router = APIRouter()
@@ -26,7 +26,6 @@ async def embed_files(
     user_id = decode_jwt(request)
     
     file_repo = FileRepository()
-    embedder = Qwen3Faiss()
     use_case = EmbedFilesUseCase(file_repo, embedder)
     isSuccess = use_case.execute(files)
     if isSuccess:

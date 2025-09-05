@@ -27,3 +27,5 @@ argon2-cffi
 PyJWT
 langchain_anthropic
 chardet
+langchain_huggingface
+sentence-transformers

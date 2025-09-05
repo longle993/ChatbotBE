@@ -24,6 +24,33 @@ class ConversationRepositoryMongo(IConversationRepository):
         conversation.id = str(result.inserted_id)
         return conversation
 
+    async def get_conversations_by_user_id(self, user_id: str, limit: int = 20) -> List[Conversation]:
+        """Lấy danh sách conversations của user"""
+        try:
+            cursor = self.collection.find(
+                {"user_id": user_id, "is_active": True}
+            ).sort("updated_at", -1).limit(limit)
+            
+            docs = await cursor.to_list(length=None)
+            conversations = []
+            
+            for doc in docs:
+                # Chỉ lấy thông tin cơ bản, không load messages để tối ưu performance
+                conversations.append(Conversation(
+                    id=str(doc["_id"]),
+                    user_id=doc["user_id"],
+                    title=doc["title"],
+                    messages=[],  # Không load messages ở đây
+                    created_at=doc["created_at"],
+                    updated_at=doc["updated_at"],
+                    is_active=doc.get("is_active", True)
+                ))
+            
+            return conversations
+        except Exception as e:
+            print(f"Error getting conversations by user id: {e}")
+            return []
+
     async def get_conversation_by_id(self, conversation_id: str) -> Optional[Conversation]:
         """Lấy conversation theo ID"""
         try:

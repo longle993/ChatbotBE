@@ -21,3 +21,7 @@ async def get_client() -> AsyncIOMotorClient:
 async def get_user_collection() -> Collection:
     cli = await get_client()
     return cli[DB_NAME]["users"]
+
+async def get_conversation_collection() -> Collection:
+    cli = await get_client()
+    return cli[DB_NAME]["conversations"]

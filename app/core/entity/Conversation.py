@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel, Field
-from Chat import Message
+from core.entity.Chat import Message
 
 class Conversation(BaseModel):
     id: Optional[str] = None

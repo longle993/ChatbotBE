@@ -1,74 +1,70 @@
 from fastapi import APIRouter, Depends, Request, Query, HTTPException, status
-from presentation.schema.User import CreateUserRequest, CreateUserResponse, GetUserRequest, GetUserResponse
-from core.use_case.CreateUser import CreateUser
-from core.use_case.GetUser import GetUser
-from infrastructure.repository.UserRepositoryMongo import UserRepositoryMongo
-from infrastructure.db.Mongo import get_user_collection
+from presentation.schema.Conversation import CreateConversationRequest, CreateConversationResponse, GetConversationResponse
+from infrastructure.repository.ConversationRepositoryMongo import ConversationRepositoryMongo
+from infrastructure.db.Mongo import get_conversation_collection
+from core.use_case.CreateConversation import CreateConversation
+from core.use_case.GetConversation import GetConversation
 from core.entity.Response import ApiResponse
 from security import (
     require_csrf,
-    set_csrf_cookie,
-    decode_jwt,
-    create_jwt,
-    set_jwt_cookies,
-    clear_jwt_cookies,
-    ACCESS_EXPIRE_MIN,
-    REFRESH_EXPIRE_DAYS,
+    decode_jwt
 )
 
 
 router = APIRouter()
-
 @router.get("/")
-async def get_users(
+async def get_conversations(
     request: Request,
     id: str = Query(...),
-    role: str = Query(...),
     username: str = Query(None),
-    collection=Depends(get_user_collection)
+    collection=Depends(get_conversation_collection)
 ):
     require_csrf(request)
     decode_jwt(request)
-    repo = UserRepositoryMongo(collection)
-    use_case = GetUser(repo)
+    repo = ConversationRepositoryMongo(collection)
+    use_case = GetConversation(repo)
 
-    users = await use_case.execute(role, id, username)
-    return GetUserResponse.from_entity(
-        ApiResponse.success(users)
+    conversations = await use_case.execute(id)
+    return GetConversationResponse.from_entity(
+        ApiResponse.success(conversations)
     )
 
-@router.post("/", response_model=CreateUserResponse)
-async def create_user(
-    req: CreateUserRequest, 
+@router.post("/create", response_model=CreateConversationResponse)
+async def create_conversation(
+    req: CreateConversationRequest, 
     request: Request,
-    collection=Depends(get_user_collection)
+    collection=Depends(get_conversation_collection)
 ):
     try:
         require_csrf(request)
-        decode_jwt(request)
+        payload = decode_jwt(request)
+        user_id = payload.get("sub")
         
-        repo = UserRepositoryMongo(collection)
-        use_case = CreateUser(repo)
+
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid or missing token")
         
-        user = await use_case.execute(
-            req.username, 
-            req.password, 
-            req.full_name, 
-            req.email
+        repo = ConversationRepositoryMongo(collection)
+        use_case = CreateConversation(repo)
+
+        conversation = await use_case.execute(
+            user_id,
+            req.title,
+            req.messages
         )
-        print(user)
-        if not user:
-            return CreateUserResponse.from_entity(
-                ApiResponse.error("User creation failed")
+        print(conversation)
+        if not conversation:
+            return CreateConversationResponse.from_entity(
+                ApiResponse.error("Conversation creation failed")
             )
 
-        return CreateUserResponse.from_entity(
-            ApiResponse.success(user)
+        return CreateConversationResponse.from_entity(
+            ApiResponse.success(conversation)
         )
 
     except Exception as e:
-        print(f"Error creating user: {e}")
-        return CreateUserResponse.from_entity(
+        print(f"Error creating conversation: {e}")
+        return CreateConversationResponse.from_entity(
             ApiResponse.error(f"Internal server error: {str(e)}")
         )
 

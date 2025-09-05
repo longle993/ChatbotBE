@@ -1,10 +1,17 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from core.entity.Response import ApiResponse
-from typing import Any, Optional
+from typing import Any, Optional, List
+from fastapi import UploadFile
+
 
 #Chat
 class CreateChatRequest(BaseModel):
+    conversation_id: str
     message: str
+    files: Optional[List[UploadFile]] = None
+    
+    class Config:
+        arbitrary_types_allowed = True
 
 class CreateChatResponse(BaseModel):
     code: int
@@ -22,4 +29,3 @@ class CreateChatResponse(BaseModel):
                 "reply": response.data.message
             }
         )
-

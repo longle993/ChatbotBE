@@ -5,6 +5,7 @@ from presentation.api.v1.UserRoute import router as user_router
 from presentation.api.v1.EmbedRoute import router as embed_router
 from presentation.api.v1.ChatRoute import router as chat_router
 from presentation.api.v1.AuthRoute import router as auth_router
+from presentation.api.v1.ConversationRoute import router as conversation_router
 
 app = FastAPI()
 
@@ -38,3 +39,4 @@ app.include_router(user_router, prefix="/users", tags=["users"])
 app.include_router(embed_router, prefix="/embed", tags=["embed"])
 app.include_router(chat_router, prefix="/chat", tags=["chat"])
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
+app.include_router(conversation_router, prefix="/conversations", tags=["conversations"])
